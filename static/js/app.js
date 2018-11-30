@@ -6,19 +6,19 @@ function buildMetadata(sample) {
   var url =`/metadata/${sample}`;
 
   d3.json(url).then(function(sample){
-    console.log(sample);
+    //console.log(sample);
 
     // Use d3 to select the panel with id of `#sample-metadata`
-    var sample_metadata = d3.select("#sample-metadata");
+    var sampleMetadata = d3.select("#sample-metadata");
 
     // Use `.html("") to clear any existing metadata
-    sample_metadata.html("");
+    sampleMetadata.html("");
 
     // Use `Object.entries` to add each key and value pair to the panel
     // Hint: Inside the loop, you will need to use d3 to append new
     // tags for each key-value in the metadata.
     Object.entries(sample).forEach(function ([key,value]) {
-      var row = sample_metadata.append("p");
+      var row = sampleMetadata.append("p");
       row.text(`${key}: ${value}`);
     });
 
@@ -28,18 +28,61 @@ function buildMetadata(sample) {
 function buildCharts(sample) {
 
   // @TODO: Use `d3.json` to fetch the sample data for the plots
-  //var url = `/samples/${sample}`;
-  //console.log(sample);
+  var url = `/samples/${sample}`;
+  d3.json(url).then(function(sample){
+
     // @TODO: Build a Bubble Chart using the sample data
+    var xVals = sample.otu_ids;
+    var yVals = sample.sample_values;
+    var mSize = sample.sample_values;
+    var mCols = sample.otu_ids;
+    var tVals = sample.otu_labels;
+
+    var trace1 = {
+      x: xVals,
+      y: yVals,
+      text: tVals,
+      mode: 'markers',
+      marker: {
+        color: mCols,
+        size: mSize
+      }
+    };
+
+    var data= [trace1];
+
+    var layout = {
+      xaxis: { title: "OTU ID"}
+    };
+
+    Plotly.newPlot('bubble', data, layout);
 
     // @TODO: Build a Pie Chart
     // HINT: You will need to use slice() to grab the top 10 sample_values,
     // otu_ids, and labels (10 each).
+
+    d3.json(url).then(function(sample){
+    var pieVals = sample.sample_values.slice(0,10);
+    var pieLabs = sample.otu_ids.slice(0,10);
+    var pieHov = sample.otu_labels.slice(0,10);
+
+    var data = [{
+      values: pieVals,
+      labels: pieLabs,
+      hovertext: pieHov,
+      type: 'pie'
+    }];
+
+    Plotly.newPlot('pie',data);
+
+    });
+  });
 }
 
 function init() {
   // Grab a reference to the dropdown select element
   var selector = d3.select("#selDataset");
+  //console.log(selector);
 
   // Use the list of sample names to populate the select options
   d3.json("/names").then((sampleNames) => {
